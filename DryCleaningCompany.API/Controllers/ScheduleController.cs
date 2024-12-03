@@ -18,12 +18,7 @@ namespace DryCleaningCompany.API.Controllers
         [HttpGet]
         public async Task<IActionResult> Calculate([FromQuery] ScheduleRequest request)
         {
-            if (!DateTime.TryParse(request.Date, out DateTime parsedDate))
-            {
-                return BadRequest("Invalid date format.");
-            }
-
-            var result = await _scheduleService.CalculateNewSchedule(parsedDate, request.Minutes);
+            var result = await _scheduleService.CalculateNewSchedule(request.Date, request.Minutes);
 
             return Ok(new ScheduleResponse
             {

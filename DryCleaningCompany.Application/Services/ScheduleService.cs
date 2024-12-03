@@ -22,19 +22,66 @@ namespace DryCleaningCompany.Application.Services
 
             var schedule = new Schedule(date, minutes);
 
-            var openingHour = shopOpen.First(o => o.OpeningHour != null).OpeningHour.Value.ToTimeSpan();
+            var openingHourDate = shopOpen
+                .FirstOrDefault(o => o.OpeningHour != null && o.Date == DateOnly.FromDateTime(schedule.FinalDate.Date));
 
-            DateTime finalDate = schedule.FinalDate.Add(openingHour);
+            openingHourDate ??= shopOpen
+                    .FirstOrDefault(o => o.OpeningHour != null && o.Day == schedule.FinalDate.DayOfWeek);
 
-            while (shopClose.Any(d => d.Day == finalDate.DayOfWeek)
-                || shopClose.Any(d => d.Date == DateOnly.FromDateTime(finalDate.Date))
-                || finalDate.TimeOfDay < shopOpen.First(o => o.OpeningHour != null).OpeningHour.Value.ToTimeSpan()
-                || finalDate.TimeOfDay >= shopOpen.First(o => o.ClosingHour != null).ClosingHour.Value.ToTimeSpan())
+            openingHourDate ??= shopOpen.First(o => o.OpeningHour != null
+                && o.Date == null
+                && o.Day == null);
+
+            var openingHour = openingHourDate.OpeningHour.Value.ToTimeSpan();
+
+            if (date.TimeOfDay < openingHour)
             {
-                finalDate = finalDate.AddDays(1).Date.Add(openingHour);
+                schedule.FinalDate = date.Date.Add(openingHour).AddMinutes(minutes);
             }
 
-            schedule.FinalDate = finalDate;
+            var closeingHourDate = shopOpen
+                .FirstOrDefault(o => o.ClosingHour != null && o.Date == DateOnly.FromDateTime(schedule.FinalDate.Date));
+
+            closeingHourDate ??= shopOpen.FirstOrDefault(o => o.ClosingHour != null && o.Day == schedule.FinalDate.DayOfWeek);
+
+            closeingHourDate ??= shopOpen.First(o => o.ClosingHour != null
+                && o.Date == null
+                && o.Day == null);
+
+            var closeingHour = closeingHourDate.ClosingHour.Value.ToTimeSpan();
+
+            int availableMinutes = (int)(closeingHour - schedule.FinalDate.TimeOfDay).TotalMinutes;
+
+            if (minutes <= availableMinutes)
+            {
+                minutes = 0;
+            }
+            else
+            {
+                minutes = availableMinutes * -1;
+            }
+
+            while (shopClose.Any(d => d.Day == schedule.FinalDate.DayOfWeek)
+                || shopClose.Any(d => d.Date == DateOnly.FromDateTime(schedule.FinalDate.Date))
+                || schedule.FinalDate.TimeOfDay < openingHour
+                || schedule.FinalDate.TimeOfDay >= closeingHour)
+            {
+                schedule.FinalDate = schedule.FinalDate.AddDays(1).Date.Add(openingHour);
+
+                openingHourDate = shopOpen
+                    .FirstOrDefault(o => o.OpeningHour != null && o.Date == DateOnly.FromDateTime(schedule.FinalDate.Date));
+
+                openingHourDate ??= shopOpen
+                        .FirstOrDefault(o => o.OpeningHour != null && o.Day == schedule.FinalDate.DayOfWeek);
+
+                openingHourDate ??= shopOpen.First(o => o.OpeningHour != null
+                    && o.Date == null
+                    && o.Day == null);
+
+                openingHour = openingHourDate.OpeningHour.Value.ToTimeSpan();
+            }
+
+            schedule.FinalDate = schedule.FinalDate.AddMinutes(minutes);
 
             await _unitOfWork.Schedules.AddAsync(schedule);
             await _unitOfWork.SaveAsync();

@@ -10,7 +10,7 @@
         {
             InitialDate = initialDate;
             MinutesToAdd = minutesToAdd;
-            FinalDate = InitialDate.AddMinutes(minutesToAdd);
+            FinalDate = initialDate.AddMinutes(minutesToAdd);
         }
     }
 }

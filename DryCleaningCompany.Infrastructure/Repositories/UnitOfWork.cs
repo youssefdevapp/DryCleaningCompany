@@ -1,10 +1,5 @@
 ﻿using DryCleaningCompany.Domain.Entities;
 using DryCleaningCompany.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DryCleaningCompany.Infrastructure.Repositories
 {
@@ -12,9 +7,9 @@ namespace DryCleaningCompany.Infrastructure.Repositories
     {
         private readonly DryCleaningDbContext _context;
 
-        public GenericRepository<ShopSchedule> ShopSchedules { get; }
+        public IGenericRepository<ShopSchedule> ShopSchedules { get; }
 
-        public GenericRepository<Schedule> Schedules { get; }
+        public IGenericRepository<Schedule> Schedules { get; }
 
         public UnitOfWork(DryCleaningDbContext context)
         {
@@ -36,8 +31,8 @@ namespace DryCleaningCompany.Infrastructure.Repositories
 
     public interface IUnitOfWork : IDisposable
     {
-        GenericRepository<ShopSchedule> ShopSchedules { get; }
-        GenericRepository<Schedule> Schedules { get; }
+        IGenericRepository<ShopSchedule> ShopSchedules { get; }
+        IGenericRepository<Schedule> Schedules { get; }
 
         Task SaveAsync();
     }

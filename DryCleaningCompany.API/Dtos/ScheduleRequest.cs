@@ -8,6 +8,6 @@ namespace DryCleaningCompany.API.Dtos
         public int Minutes { get; set; }
 
         [FromQuery]
-        public string Date { get; set; }
+        public DateTime Date { get; set; }
     }
 }

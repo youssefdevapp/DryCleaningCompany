@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using DryCleaningCompany.API.Controllers;
 using DryCleaningCompany.API.Dtos;
+using DryCleaningCompany.Domain.Entities;
 using DryCleaningCompany.Domain.Services;
 using Moq;
 
@@ -34,12 +35,14 @@ namespace DryCleaningCompany.API.Tests.Controllers
             // Arrange
             var scheduleController = this.CreateScheduleController();
             ScheduleRequest request = fixture.Create<ScheduleRequest>();
+            Schedule entity = fixture.Create<Schedule>();
+            mockScheduleService.Setup(r => r.CalculateNewSchedule(request.Date, request.Minutes)).ReturnsAsync(entity);
 
             // Act
             var result = await scheduleController.Calculate(request);
 
             // Assert
-            Assert.Fail();
+            Assert.IsNotNull(result);
             this.mockRepository.VerifyAll();
         }
     }
